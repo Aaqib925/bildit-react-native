@@ -1,0 +1,1 @@
+export const EXPENSES_QUERY_KEY = ['expenses'];

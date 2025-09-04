@@ -9,6 +9,7 @@ import ExpenseListItem from '../components/ExpenseListItem';
 import SortControls, { SortCriteria } from '../components/SortControls';
 import { useExpenseStore } from '../store/expense';
 import { useThemeStore } from '../store/theme';
+import { Plus } from 'lucide-react-native';
 
 type NavigationProp = ExpenseListScreenProps['navigation'];
 
@@ -79,10 +80,13 @@ const ExpenseListScreen = () => {
 
       <View style={styles.fabContainer}>
         <AppButton
-          title="+"
+          title=""
           onPress={handleNavigateToAdd}
-          style={styles.fab}
-        />
+          style={[styles.fab, tw`bg-indigo-600`]}
+          tStyle={tw`text-white`}
+        >
+          <Plus size={20} color="white" />
+        </AppButton>
       </View>
     </View>
   );

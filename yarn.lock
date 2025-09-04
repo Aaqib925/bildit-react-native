@@ -2518,6 +2518,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-core@npm:5.86.0":
+  version: 5.86.0
+  resolution: "@tanstack/query-core@npm:5.86.0"
+  checksum: fb833046e6cd5f897e370855accf02f54a24ea8183cc5b46e4eca5ff966913286bb75a7b34962f1ec0b8ebb3d5f83e617dbf0f56c3e435c1d9023b6227f8d627
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:^5.86.0":
+  version: 5.86.0
+  resolution: "@tanstack/react-query@npm:5.86.0"
+  dependencies:
+    "@tanstack/query-core": 5.86.0
+  peerDependencies:
+    react: ^18 || ^19
+  checksum: 02cb3947946ffa94feb2f2a1ef76eb704c20c8cfee63954d1bdc27ef902a15dd36c4e8128f07d5c3154b3244625bd77404c5f54061ebe083f79e5688f6ebff6d
+  languageName: node
+  linkType: hard
+
 "@types/babel__core@npm:^7.1.14":
   version: 7.20.5
   resolution: "@types/babel__core@npm:7.20.5"
@@ -2887,6 +2905,7 @@ __metadata:
     "@react-native/typescript-config": 0.81.1
     "@react-navigation/native": ^7.1.17
     "@react-navigation/stack": ^7.4.8
+    "@tanstack/react-query": ^5.86.0
     "@types/jest": ^29.5.13
     "@types/react": ^19.1.0
     "@types/react-test-renderer": ^19.1.0

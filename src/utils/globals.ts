@@ -1,0 +1,1 @@
+export const HIGH_EXPENSE_THRESHOLD = 50;
