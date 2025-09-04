@@ -1,25 +1,111 @@
-import React from 'react';
-import { View, Text, Button } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ExpenseListScreenProps } from '../navigation/types';
-import tw from './../style/lib'
+import tw from 'twrnc';
+import AppButton from '../components/AppButton';
+import AppHeader from '../components/AppHeader';
+import ExpenseListItem from '../components/ExpenseListItem';
+import SortControls, { SortCriteria } from '../components/SortControls';
+import { useExpenseStore } from '../store/expense';
+import { useThemeStore } from '../store/theme';
+
 type NavigationProp = ExpenseListScreenProps['navigation'];
+
+const EmptyListComponent = React.memo(({ onPress }: { onPress: () => void }) => {
+  const theme = useThemeStore((state) => state.theme);
+  const isDarkMode = theme === 'dark';
+  return (
+    <View style={tw`flex-1 justify-center items-center mt-20`}>
+      <Text style={tw`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>No expenses yet. Let's add one!</Text>
+      <AppButton title="Add First Expense" onPress={onPress} />
+    </View>
+  );
+});
+
 
 const ExpenseListScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const expenses = useExpenseStore((state) => state.expenses);
+  const theme = useThemeStore((state) => state.theme);
+  const isDarkMode = theme === 'dark';
+
+  const [sortCriteria, setSortCriteria] = useState<SortCriteria>('date');
+
+  const sortedExpenses = useMemo(() => {
+    if (!sortCriteria) {
+      return expenses;
+    }
+    return [...expenses].sort((a, b) => {
+      switch (sortCriteria) {
+        case 'category':
+          return a.category.localeCompare(b.category);
+        case 'amount':
+          return b.amount - a.amount;
+        case 'date':
+        default:
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }
+    });
+  }, [expenses, sortCriteria]);
+
+  const handleNavigateToAdd = useCallback(() => {
+    navigation.navigate('AddEditExpense', {});
+  }, [navigation]);
+
+  const handleNavigateToEdit = useCallback((expenseId: string) => {
+    navigation.navigate('AddEditExpense', { expenseId });
+  }, [navigation]);
+
+  const renderEmptyList = useCallback(() => (
+    <EmptyListComponent onPress={handleNavigateToAdd} />
+  ), [handleNavigateToAdd]);
+
 
   return (
-    <View style={tw`flex-1 justify-center items-center p-4`}>
-      <Text style={tw`text-2xl font-bold mb-2`}>Expense List Home</Text>
-      <Text style={tw`text-base text-gray-600 mb-5`}>
-        Your expenses will appear here.
-      </Text>
-      <Button
-        title="Add New Expense"
-        onPress={() => navigation.navigate('AddEditExpense', {})}
+    <View style={tw`flex-1 ${isDarkMode ? 'bg-black' : 'bg-gray-100'}`}>
+      <AppHeader title="My Expenses" />
+      <FlatList
+        data={sortedExpenses}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <ExpenseListItem item={item} onPress={() => handleNavigateToEdit(item.id)} />
+        )}
+        ListHeaderComponent={<SortControls currentSort={sortCriteria} onSortChange={setSortCriteria} />}
+        ListEmptyComponent={renderEmptyList}
+        contentContainerStyle={tw`p-4 pb-24`}
+        showsVerticalScrollIndicator={false}
       />
+
+      <View style={styles.fabContainer}>
+        <AppButton
+          title="+"
+          onPress={handleNavigateToAdd}
+          style={styles.fab}
+        />
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  fabContainer: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+  },
+  fab: {
+    width: 60,
+    height: 60,
+    borderRadius: 999,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+});
 
 export default ExpenseListScreen;
