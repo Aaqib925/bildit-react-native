@@ -10,6 +10,7 @@ export type ExpenseStackParamList = {
 export type RootTabParamList = {
   Expenses: NavigatorScreenParams<ExpenseStackParamList>; 
   Analytics: undefined;
+  Settings: undefined;
 };
 
 // --- Prop Types for Screens ---

@@ -2,11 +2,12 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from './types';
 import tw from 'twrnc';
-import { Home, PieChart } from 'lucide-react-native';
+import { Home, PieChart, Settings } from 'lucide-react-native';
 
 import ExpenseStackNavigator from './ExpenseStackNavigator';
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import { useThemeStore } from '../store/theme';
+import SettingsScreen from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -15,6 +16,9 @@ const renderExpensesIcon = (props: { focused: boolean; color: string; size: numb
 );
 const renderAnalyticsIcon = (props: { focused: boolean; color: string; size: number }) => (
   <PieChart {...props} strokeWidth={props.focused ? 2.5 : 2} />
+);
+const renderSettingsIcon = (props: { focused: boolean; color: string; size: number }) => (
+  <Settings {...props} strokeWidth={props.focused ? 2.5 : 2} />
 );
 
 const TabNavigator = () => {
@@ -35,6 +39,7 @@ const TabNavigator = () => {
     >
       <Tab.Screen name="Expenses" component={ExpenseStackNavigator} options={{ tabBarIcon: renderExpensesIcon }} />
       <Tab.Screen name="Analytics" component={AnalyticsScreen} options={{ tabBarIcon: renderAnalyticsIcon }} />
+      <Tab.Screen name="Settings" component={SettingsScreen} options={{ tabBarIcon: renderSettingsIcon }} />
     </Tab.Navigator>
   );
 };

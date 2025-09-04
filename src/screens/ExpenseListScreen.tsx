@@ -11,6 +11,8 @@ import { useThemeStore } from '../store/theme';
 import { Plus } from 'lucide-react-native';
 import { RefreshControl } from 'react-native-gesture-handler';
 import { useExpenses } from '../api/hooks/expense/queries';
+import { useExpenseStore } from '../store/expense';
+import AlertCard from '../components/AlertCard';
 
 type NavigationProp = ExpenseListScreenProps['navigation'];
 
@@ -19,18 +21,33 @@ const EmptyListComponent = React.memo(({ onPress }: { onPress: () => void }) => 
   const isDarkMode = theme === 'dark';
   return (
     <View style={tw`flex-1 justify-center items-center mt-20`}>
-      <Text style={tw`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>No expenses yet. Let's add one!</Text>
+      <Text style={tw`text-lg text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>No expenses found.{'\n'} Scroll down to refresh or let's add one!</Text>
       <AppButton title="Add First Expense" onPress={onPress} />
     </View>
   );
 });
 
-
 const ExpenseListScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { data: expenses = [], refetch, isFetching } = useExpenses();
+  const spendingLimit = useExpenseStore((state) => state.spendingLimit);
   const theme = useThemeStore((state) => state.theme);
   const isDarkMode = theme === 'dark';
+
+  const totalSpentThisMonth = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    return expenses
+      .filter(expense => {
+        const expenseDate = new Date(expense.date);
+        return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
+      })
+      .reduce((sum, expense) => sum + expense.amount, 0);
+  }, [expenses]);
+  
+  const isLimitExceeded = spendingLimit !== null && totalSpentThisMonth > spendingLimit;
 
   const [sortCriteria, setSortCriteria] = useState<SortCriteria>('date');
 
@@ -39,24 +56,15 @@ const ExpenseListScreen = () => {
       switch (sortCriteria) {
         case 'category': return a.category.localeCompare(b.category);
         case 'amount': return b.amount - a.amount;
-        case 'date':
         default: return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
     });
   }, [expenses, sortCriteria]);
 
-  const handleNavigateToAdd = useCallback(() => {
-    navigation.navigate('AddEditExpense', {});
-  }, [navigation]);
+  const handleNavigateToAdd = useCallback(() => navigation.navigate('AddEditExpense', {}), [navigation]);
+  const handleNavigateToEdit = useCallback((expenseId: string) => navigation.navigate('AddEditExpense', { expenseId }), [navigation]);
 
-  const handleNavigateToEdit = useCallback((expenseId: string) => {
-    navigation.navigate('AddEditExpense', { expenseId });
-  }, [navigation]);
-
-  const renderEmptyList = useCallback(() => (
-    <EmptyListComponent onPress={handleNavigateToAdd} />
-  ), [handleNavigateToAdd]);
-
+  const renderEmptyList = useCallback(() => <EmptyListComponent onPress={handleNavigateToAdd} />, [handleNavigateToAdd]);
 
   return (
     <View style={tw`flex-1 ${isDarkMode ? 'bg-black' : 'bg-gray-100'}`}>
@@ -65,53 +73,32 @@ const ExpenseListScreen = () => {
         data={sortedExpenses}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <ExpenseListItem item={item} onPress={() => handleNavigateToEdit(item.id)} />
+            <ExpenseListItem item={item} onPress={() => handleNavigateToEdit(item.id)} />
         )}
-        refreshControl={
-          <RefreshControl
-            refreshing={isFetching} // The spinner is visible when fetching
-            onRefresh={refetch}     // Call the refetch function on pull
-            tintColor={isDarkMode ? tw.color('gray-400') : tw.color('gray-600')}
-          />
+        ListHeaderComponent={
+          <>
+            {isLimitExceeded && <AlertCard message={`You've exceeded your monthly limit of $${spendingLimit?.toFixed(2)}!`} />}
+            <SortControls currentSort={sortCriteria} onSortChange={setSortCriteria} />
+          </>
         }
-        ListHeaderComponent={<SortControls currentSort={sortCriteria} onSortChange={setSortCriteria} />}
         ListEmptyComponent={renderEmptyList}
         contentContainerStyle={tw`p-4 pb-24`}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} tintColor={isDarkMode ? tw.color('gray-400') : tw.color('gray-600')} />}
       />
-
       <View style={styles.fabContainer}>
-        <AppButton
-          title=""
-          onPress={handleNavigateToAdd}
-          style={[styles.fab, tw`bg-indigo-600`]}
-          tStyle={tw`text-white`}
-        >
-          <Plus size={20} color="white" />
-        </AppButton>
+         <AppButton title="" onPress={handleNavigateToAdd} style={styles.fab}>
+            <Plus size={24} color="white" />
+         </AppButton>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  fabContainer: {
-    position: 'absolute',
-    bottom: 30,
-    right: 20,
-  },
-  fab: {
-    width: 60,
-    height: 60,
-    borderRadius: 999,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-  },
+  fabContainer: { position: 'absolute', bottom: 30, right: 20 },
+  fab: { width: 60, height: 60, borderRadius: 999, justifyContent: 'center', alignItems: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 4 },
 });
 
 export default ExpenseListScreen;
+

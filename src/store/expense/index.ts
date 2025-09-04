@@ -11,10 +11,12 @@ export type UpdatedExpense = Partial<Omit<Expense, 'id'>> & { id: string };
 interface ExpenseState {
   expenses: Expense[];
   categories: string[];
+  spendingLimit: number | null;
   addExpense: (expense: NewExpense) => void;
   updateExpense: (updatedExpense: UpdatedExpense) => void;
   deleteExpense: (id: string) => void;
   getExpenseById: (id: string) => Expense | undefined;
+  setSpendingLimit: (limit: number | null) => void;
   addCategory: (category: string) => void;
 }
 
@@ -23,6 +25,7 @@ export const useExpenseStore = create<ExpenseState>()(
     (set, get) => ({
       expenses: [],
       categories: [],
+      spendingLimit: null,
 
       addExpense: (newExpense) => {
         set(
@@ -66,6 +69,13 @@ export const useExpenseStore = create<ExpenseState>()(
         return get().expenses.find((expense) => expense.id === id);
       },
 
+      setSpendingLimit: (limit) => {
+        set(
+          produce((state: ExpenseState) => {
+            state.spendingLimit = limit;
+          }),
+        );
+      },
 
       addCategory: (newCategory) => {
         set(
