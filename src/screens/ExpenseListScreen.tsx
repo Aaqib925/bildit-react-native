@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ExpenseListScreenProps } from '../navigation/types';
 import tw from 'twrnc';
@@ -29,7 +29,7 @@ const EmptyListComponent = React.memo(({ onPress }: { onPress: () => void }) => 
 
 const ExpenseListScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const { data: expenses = [], refetch, isFetching } = useExpenses();
+  const { data: expenses, refetch, isFetching, isLoading } = useExpenses();
   const spendingLimit = useExpenseStore((state) => state.spendingLimit);
   const theme = useThemeStore((state) => state.theme);
   const isDarkMode = theme === 'dark';
@@ -40,19 +40,19 @@ const ExpenseListScreen = () => {
     const currentYear = now.getFullYear();
 
     return expenses
-      .filter(expense => {
-        const expenseDate = new Date(expense.date);
-        return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
-      })
-      .reduce((sum, expense) => sum + expense.amount, 0);
+      ? expenses.filter(expense => {
+          const expenseDate = new Date(expense.date);
+          return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
+        }).reduce((sum, expense) => sum + expense.amount, 0)
+      : 0;
   }, [expenses]);
-  
+
   const isLimitExceeded = spendingLimit !== null && totalSpentThisMonth > spendingLimit;
 
   const [sortCriteria, setSortCriteria] = useState<SortCriteria>('date');
 
   const sortedExpenses = useMemo(() => {
-    return [...expenses].sort((a, b) => {
+    return [...expenses || []].sort((a, b) => {
       switch (sortCriteria) {
         case 'category': return a.category.localeCompare(b.category);
         case 'amount': return b.amount - a.amount;
@@ -65,7 +65,17 @@ const ExpenseListScreen = () => {
   const handleNavigateToEdit = useCallback((expenseId: string) => navigation.navigate('AddEditExpense', { expenseId }), [navigation]);
 
   const renderEmptyList = useCallback(() => <EmptyListComponent onPress={handleNavigateToAdd} />, [handleNavigateToAdd]);
-
+  
+  if (isLoading) {
+    return (
+      <View style={tw`flex-1 w-full h-full ${isDarkMode ? 'bg-black' : 'bg-gray-100'} justify-center items-center`}>
+        <ActivityIndicator size="large" color={isDarkMode ? '#fff' : '#000'} />
+        <Text style={tw`mt-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          Loading expenses...
+        </Text>
+      </View>
+    );
+  }
   return (
     <View style={tw`flex-1 ${isDarkMode ? 'bg-black' : 'bg-gray-100'}`}>
       <AppHeader title="My Expenses" />
@@ -73,7 +83,7 @@ const ExpenseListScreen = () => {
         data={sortedExpenses}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-            <ExpenseListItem item={item} onPress={() => handleNavigateToEdit(item.id)} />
+          <ExpenseListItem item={item} onPress={() => handleNavigateToEdit(item.id)} />
         )}
         ListHeaderComponent={
           <>
@@ -87,9 +97,9 @@ const ExpenseListScreen = () => {
         refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refetch} tintColor={isDarkMode ? tw.color('gray-400') : tw.color('gray-600')} />}
       />
       <View style={styles.fabContainer}>
-         <AppButton title="" onPress={handleNavigateToAdd} style={styles.fab}>
-            <Plus size={24} color="white" />
-         </AppButton>
+        <AppButton title="" onPress={handleNavigateToAdd} style={styles.fab}>
+          <Plus size={24} color="white" />
+        </AppButton>
       </View>
     </View>
   );

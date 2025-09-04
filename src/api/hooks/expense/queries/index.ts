@@ -8,14 +8,12 @@ import { wait } from '../../../../utils/apiUtils';
  * It simulates an async API call to the Zustand store.
  */
 export const useExpenses = () => {
-  const expenses = useExpenseStore((state) => state.expenses);
 
   return useQuery({
     queryKey: EXPENSES_QUERY_KEY,
     queryFn: async () => {
       await wait(500);
-      return expenses;
+      return useExpenseStore.getState().expenses;
     },
-    initialData: expenses, 
   });
 };
