@@ -13,7 +13,7 @@ export const useExpenses = () => {
   return useQuery({
     queryKey: EXPENSES_QUERY_KEY,
     queryFn: async () => {
-      await wait(1200);
+      await wait(500);
       return expenses;
     },
     initialData: expenses, 

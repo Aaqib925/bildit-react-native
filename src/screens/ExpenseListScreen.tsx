@@ -7,9 +7,10 @@ import AppButton from '../components/AppButton';
 import AppHeader from '../components/AppHeader';
 import ExpenseListItem from '../components/ExpenseListItem';
 import SortControls, { SortCriteria } from '../components/SortControls';
-import { useExpenseStore } from '../store/expense';
 import { useThemeStore } from '../store/theme';
 import { Plus } from 'lucide-react-native';
+import { RefreshControl } from 'react-native-gesture-handler';
+import { useExpenses } from '../api/hooks/expense/queries';
 
 type NavigationProp = ExpenseListScreenProps['navigation'];
 
@@ -27,25 +28,19 @@ const EmptyListComponent = React.memo(({ onPress }: { onPress: () => void }) => 
 
 const ExpenseListScreen = () => {
   const navigation = useNavigation<NavigationProp>();
-  const expenses = useExpenseStore((state) => state.expenses);
+  const { data: expenses = [], refetch, isFetching } = useExpenses();
   const theme = useThemeStore((state) => state.theme);
   const isDarkMode = theme === 'dark';
 
   const [sortCriteria, setSortCriteria] = useState<SortCriteria>('date');
 
   const sortedExpenses = useMemo(() => {
-    if (!sortCriteria) {
-      return expenses;
-    }
     return [...expenses].sort((a, b) => {
       switch (sortCriteria) {
-        case 'category':
-          return a.category.localeCompare(b.category);
-        case 'amount':
-          return b.amount - a.amount;
+        case 'category': return a.category.localeCompare(b.category);
+        case 'amount': return b.amount - a.amount;
         case 'date':
-        default:
-          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        default: return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
     });
   }, [expenses, sortCriteria]);
@@ -72,6 +67,13 @@ const ExpenseListScreen = () => {
         renderItem={({ item }) => (
           <ExpenseListItem item={item} onPress={() => handleNavigateToEdit(item.id)} />
         )}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching} // The spinner is visible when fetching
+            onRefresh={refetch}     // Call the refetch function on pull
+            tintColor={isDarkMode ? tw.color('gray-400') : tw.color('gray-600')}
+          />
+        }
         ListHeaderComponent={<SortControls currentSort={sortCriteria} onSortChange={setSortCriteria} />}
         ListEmptyComponent={renderEmptyList}
         contentContainerStyle={tw`p-4 pb-24`}
