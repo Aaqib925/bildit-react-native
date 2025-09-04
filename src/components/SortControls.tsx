@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import tw from 'twrnc';
-import { useThemeStore } from './../store/theme';
+import { useThemeStore } from '../store/theme';
 import { CalendarDays, LayoutGrid, DollarSign } from 'lucide-react-native';
 
-export type SortCriteria = 'date' | 'category' | 'amount' | null;
+export type SortCriteria = 'date' | 'category' | 'amount';
 
 interface SortControlsProps {
   currentSort: SortCriteria;
@@ -46,8 +46,8 @@ const SortControls = ({ currentSort, onSortChange }: SortControlsProps) => {
   const theme = useThemeStore((state) => state.theme);
   const isDarkMode = theme === 'dark';
 
-  const handlePress = (criteria: 'date' | 'category' | 'amount') => {
-    onSortChange(currentSort === criteria ? null : criteria);
+  const handlePress = (criteria: SortCriteria) => {
+    onSortChange(criteria);
   };
 
   return (

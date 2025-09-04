@@ -21,7 +21,6 @@ const ExpenseListItem = ({ item, onPress }: ExpenseListItemProps) => {
   });
 
   const isHighExpense = item.amount >= HIGH_EXPENSE_THRESHOLD;
-
   const IconComponent = isHighExpense ? TrendingUp : TrendingDown;
   const iconColor = isHighExpense ? tw.color('red-500') : tw.color('green-500');
 
@@ -31,8 +30,8 @@ const ExpenseListItem = ({ item, onPress }: ExpenseListItemProps) => {
   return (
     <TouchableOpacity
       onPress={onPress}
-      activeOpacity={0.5}
-      style={tw`p-4 rounded-2xl mb-3 flex-row items-center shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      activeOpacity={0.8}
+      style={tw`p-4 rounded-2xl flex-row items-center shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
       
       <View style={tw`w-12 h-12 rounded-full items-center justify-center mr-4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
          <IconComponent size={24} color={iconColor} />
