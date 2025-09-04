@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Modal,
@@ -10,8 +11,8 @@ import {
   Platform,
 } from 'react-native';
 import tw from 'twrnc';
-import { X } from 'lucide-react-native'; 
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { X } from 'lucide-react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface AddCategoryModalProps {
   visible: boolean;
@@ -26,6 +27,7 @@ const AddCategoryModal = ({
   onAddCategory,
   isDarkMode,
 }: AddCategoryModalProps) => {
+  const insets = useSafeAreaInsets();
   const [newCategoryName, setNewCategoryName] = useState('');
   const [error, setError] = useState('');
 
@@ -49,7 +51,7 @@ const AddCategoryModal = ({
 
   return (
     <Modal
-      animationType="slide" 
+      animationType="slide"
       visible={visible}
       onRequestClose={handleClose}
     >
@@ -57,6 +59,7 @@ const AddCategoryModal = ({
         style={[
           styles.container,
           isDarkMode ? styles.containerDark : styles.containerLight,
+          { paddingTop: insets.top }
         ]}
       >
         <KeyboardAvoidingView
@@ -112,7 +115,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   containerLight: {
-    backgroundColor: '#F9FAFB', 
+    backgroundColor: '#F9FAFB',
   },
   containerDark: {
     backgroundColor: 'black',
@@ -135,7 +138,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   textInputError: {
-    borderColor: '#EF4444', 
+    borderColor: '#EF4444',
   },
 });
 
